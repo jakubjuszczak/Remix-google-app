@@ -1,4 +1,5 @@
 import { getGoogleUtils } from "./google.server";
+import { json } from "@remix-run/node";
 
 const spreadsheetId = "1BnhE0HuBiqROZLKM1D5xZzYxXQvqINdDAfkemutQtVM";
 
@@ -13,8 +14,20 @@ export const getRows = async () => {
     spreadsheetId,
     range: "Arkusz1!A1:D4",
   });
-  console.log("Retrieved data:");
-  console.log(rows.data.values);
+  return rows.data.values;
+};
+
+export const getCarTypes = async () => {
+  const { auth, googleSheets } = await getGoogleUtils();
+  const rows = await googleSheets.spreadsheets.values.get({
+    auth,
+    spreadsheetId,
+    range: "Config!A2:B5",
+  });
+  return rows.data.values.map((value) => ({
+    type: value[0],
+    capacity: parseInt(value[1]),
+  }));
 };
 
 export const writeRows = async (formdata) => {
@@ -41,4 +54,6 @@ export const writeRows = async (formdata) => {
       values: [dataForSheet],
     },
   });
+
+  // dodaj sortowanie
 };

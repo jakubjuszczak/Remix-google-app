@@ -1,6 +1,7 @@
 import { redirect } from "@remix-run/node";
-import { Form } from "@remix-run/react";
-import { getRows, writeRows } from "~/utils/spreadsheets.server";
+import { Form, useLoaderData } from "@remix-run/react";
+import { useState } from "react";
+import { getRows, writeRows, getCarTypes } from "~/utils/spreadsheets.server";
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
@@ -17,7 +18,28 @@ export const action = async ({ request }) => {
   return redirect("/");
 };
 
+export const loader = async () => {
+  console.log("loader fired off");
+  return await getCarTypes();
+};
+
 export default function Index() {
+  // TODO: dynamic fields
+  //const [programPlanList, setProgramPlanList] = useState();
+  const initialSelectOptionsList = useLoaderData();
+  const [selectOptionsList, setSelectOptionsList] = useState(
+    initialSelectOptionsList
+  );
+
+  const handlePAXChange = (event) => {
+    console.log("pax change fired");
+    console.log(selectOptionsList);
+    setSelectOptionsList(
+      initialSelectOptionsList.filter(
+        (car) => car.capacity >= event.currentTarget.value
+      )
+    );
+  };
   const formname = "Form name";
 
   return (
@@ -51,7 +73,12 @@ export default function Index() {
       <div>
         <label>
           Number of adults:
-          <input type="number" name="numberofadults" defaultValue="2" />
+          <input
+            type="number"
+            name="numberofadults"
+            defaultValue="2"
+            onChange={(e) => handlePAXChange(e)}
+          />
         </label>
       </div>
       <div>
@@ -68,12 +95,15 @@ export default function Index() {
       </div>
       <div>
         <label>
-          Choose a car:
+          Car type:
           <select name="cartype" id="cars">
-            <option defaultValue="volvo">Volvo</option>
-            <option defaultValue="saab">Saab</option>
-            <option defaultValue="mercedes">Mercedes</option>
-            <option defaultValue="audi">Audi</option>
+            {selectOptionsList.map((car) => {
+              return (
+                <option key={car.type} value={car.capacity}>
+                  {car.type}
+                </option>
+              );
+            })}
           </select>
         </label>
       </div>
@@ -99,7 +129,6 @@ export default function Index() {
           />
         </label>
       </div>
-
       <button name="actionType" value="getData">
         Get rows
       </button>
