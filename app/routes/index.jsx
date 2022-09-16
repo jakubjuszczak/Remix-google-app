@@ -11,6 +11,10 @@ export const action = async ({ request }) => {
   }
   if (action === "addData") {
     const data = {};
+    // TODO: fix dynamic data
+    // now it only shows the last row, but should display
+    // a list of all these fields
+    // remove 'program' and 'date' fields, replace with a list
     formData.forEach((value, key) => (data[key] = value));
     await writeRows(data);
   }
@@ -25,15 +29,34 @@ export const loader = async () => {
 
 export default function Index() {
   // TODO: dynamic fields
-  //const [programPlanList, setProgramPlanList] = useState();
+  const [programPlanList, setProgramPlanList] = useState([
+    { date: "", program: "" },
+  ]);
   const initialSelectOptionsList = useLoaderData();
   const [selectOptionsList, setSelectOptionsList] = useState(
     initialSelectOptionsList
   );
 
+  const handleProgramPlanChange = (index, event) => {
+    const data = [...programPlanList];
+    data[index][event.target.name] = event.target.value;
+    setProgramPlanList(data);
+
+    console.log(programPlanList);
+  };
+
+  const addProgramFields = () => {
+    const newfield = { date: "", program: "" };
+    setProgramPlanList([...programPlanList, newfield]);
+  };
+
+  const removeProgramFields = (index) => {
+    let data = [...programPlanList];
+    data.splice(index, 1);
+    setProgramPlanList(data);
+  };
+
   const handlePAXChange = (event) => {
-    console.log("pax change fired");
-    console.log(selectOptionsList);
     setSelectOptionsList(
       initialSelectOptionsList.filter(
         (car) => car.capacity >= event.currentTarget.value
@@ -129,6 +152,33 @@ export default function Index() {
           />
         </label>
       </div>
+      <hr />
+      Dyanmic data
+      {programPlanList.map((input, index) => {
+        return (
+          <div key={index}>
+            <input
+              name="date"
+              type="date"
+              placeholder="03-03-2022"
+              value={input.date}
+              autoComplete="off"
+              onChange={(event) => handleProgramPlanChange(index, event)}
+            />
+            <input
+              name="program"
+              type="text"
+              placeholder="Program plan placeholder"
+              value={input.program}
+              autoComplete="off"
+              onChange={(event) => handleProgramPlanChange(index, event)}
+            />
+            <button onClick={() => removeProgramFields(index)}>Remove</button>
+          </div>
+        );
+      })}
+      <button onClick={addProgramFields}>Add More..</button>
+      <hr />
       <button name="actionType" value="getData">
         Get rows
       </button>
